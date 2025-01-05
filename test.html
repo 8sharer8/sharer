@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메세지 전송</title>
+    <title>ㄴ메세지 전송</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -83,21 +83,39 @@
 
         document.getElementById('cancelButton').addEventListener('click', function() {
             document.getElementById('file').value = '';
+            document.getElementById('message').value = '';
+            document.getElementById('statusMessageWebhook').textContent = '';
         });
 
         function sendMessage() {
             const message = document.getElementById('message').value;
             const fileInput = document.getElementById('file');
+            const files = fileInput.files;
             const formData = new FormData();
 
+            // 메시지 추가
             if (message) {
                 formData.append('content', message);
             }
 
-            // 모든 파일을 FormData에 추가
-            Array.from(fileInput.files).forEach((file, index) => {
+            // 파일 크기 제한 확인 및 추가
+            const maxFileSize = 8 * 1024 * 1024; // 8MB
+            let validFiles = Array.from(files).filter(file => file.size <= maxFileSize);
+
+            if (validFiles.length === 0) {
+                document.getElementById('statusMessageWebhook').textContent = '파일 크기가 8MB를 초과하여 전송할 수 없습니다.';
+                document.getElementById('statusMessageWebhook').style.color = '#ff0000';
+                return;
+            }
+
+            validFiles.forEach((file, index) => {
                 formData.append(`file${index}`, file);
             });
+
+            // 상태 메시지 초기화
+            const statusMessage = document.getElementById('statusMessageWebhook');
+            statusMessage.textContent = '전송 중...';
+            statusMessage.style.color = '#ffffff';
 
             // Fetch API로 데이터 전송
             fetch(webhookUrl, {
@@ -106,16 +124,16 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        document.getElementById('statusMessageWebhook').textContent = '전송되었습니다!';
-                        document.getElementById('statusMessageWebhook').style.color = '#00ff00';
+                        statusMessage.textContent = '전송되었습니다!';
+                        statusMessage.style.color = '#00ff00';
                     } else {
-                        document.getElementById('statusMessageWebhook').textContent = `전송 실패: ${response.status}`;
-                        document.getElementById('statusMessageWebhook').style.color = '#ff0000';
+                        statusMessage.textContent = `전송 실패: ${response.status}`;
+                        statusMessage.style.color = '#ff0000';
                     }
                 })
                 .catch(error => {
-                    document.getElementById('statusMessageWebhook').textContent = '전송 중 오류 발생';
-                    document.getElementById('statusMessageWebhook').style.color = '#ff0000';
+                    statusMessage.textContent = '전송 중 오류 발생';
+                    statusMessage.style.color = '#ff0000';
                     console.error('Error:', error);
                 });
         }
