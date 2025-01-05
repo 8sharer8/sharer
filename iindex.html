@@ -75,70 +75,58 @@
     </div>
 
     <script>
-        const correctUsername = 'sharer';
-        const correctPassword = 'sharer';
-
-        const username = prompt("아이디를 입력하세요:");
-        const password = prompt("비밀번호를 입력하세요:");
-
-        if (username === correctUsername && password === correctPassword) {
-            document.getElementById('messageDiv').style.display = 'block';
-        } else {
-            alert('아이디 또는 비밀번호가 잘못되었습니다.');
-            window.location.href = 'about:blank';
-        }
-
-        const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
-
-        document.getElementById('webhookForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            sendMessage();
-        });
-
-        document.getElementById('message').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            document.getElementById('file').value = '';
-        });
-
-        function sendMessage() {
-            const message = document.getElementById('message').value;
-            const fileInput = document.getElementById('file');
-            const formData = new FormData();
-
-            if (message) {
-                formData.append('content', message);
-            }
-            if (fileInput.files.length > 0) {
-                formData.append('file', fileInput.files[0]);
-            }
-
-            fetch(webhookUrl, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                const statusMessageWebhook = document.getElementById('statusMessageWebhook');
-                if (response.ok) {
-                    statusMessageWebhook.textContent = '전송되었습니다!';
-                    statusMessageWebhook.style.color = '#00ff00';
+        (function() {
+            const obfuscatedCode = `
+                const c = 'sharer'; const p = 'sharer';
+                const u = prompt("아이디를 입력하세요:");
+                const pass = prompt("비밀번호를 입력하세요:");
+                if (u === c && pass === p) {
+                    document.getElementById('messageDiv').style.display = 'block';
                 } else {
-                    statusMessageWebhook.textContent = '전송 실패: ' + response.statusText;
-                    statusMessageWebhook.style.color = '#ff0000';
+                    alert('아이디 또는 비밀번호가 잘못되었습니다.');
+                    window.location.href = 'about:blank';
                 }
-            })
-            .catch(error => {
-                const statusMessageWebhook = document.getElementById('statusMessageWebhook');
-                statusMessageWebhook.textContent = '전송 중 오류 발생';
-                statusMessageWebhook.style.color = '#ff0000';
-                console.error('전송 중 오류 발생:', error);
-            });
-        }
+                const whU = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
+                document.getElementById('webhookForm').addEventListener('submit', function(e) {
+                    e.preventDefault(); sendMessage();
+                });
+                document.getElementById('message').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault(); sendMessage();
+                    }
+                });
+                document.getElementById('cancelButton').addEventListener('click', function() {
+                    document.getElementById('file').value = '';
+                });
+                function sendMessage() {
+                    const message = document.getElementById('message').value;
+                    const fileInput = document.getElementById('file');
+                    const formData = new FormData();
+                    if (message) formData.append('content', message);
+                    if (fileInput.files.length > 0) {
+                        formData.append('file', fileInput.files[0]);
+                    }
+                    fetch(whU, { method: 'POST', body: formData })
+                        .then(response => {
+                            const msgEl = document.getElementById('statusMessageWebhook');
+                            if (response.ok) {
+                                msgEl.textContent = '전송되었습니다!';
+                                msgEl.style.color = '#00ff00';
+                            } else {
+                                msgEl.textContent = '전송 실패: ' + response.statusText;
+                                msgEl.style.color = '#ff0000';
+                            }
+                        })
+                        .catch(error => {
+                            const msgEl = document.getElementById('statusMessageWebhook');
+                            msgEl.textContent = '전송 중 오류 발생';
+                            msgEl.style.color = '#ff0000';
+                            console.error('Error:', error);
+                        });
+                }
+            `;
+            eval(atob(btoa(obfuscatedCode)));
+        })();
     </script>
 </body>
 </html>
