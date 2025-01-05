@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메세지 전송</title>
+    <title>ㄴ이미지 붙여넣기 및 전송</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,10 +26,6 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             width: 300px;
-        }
-        label {
-            margin-top: 10px;
-            display: block;
         }
         textarea {
             width: 100%;
@@ -56,98 +52,91 @@
         #statusMessage {
             margin-top: 10px;
             text-align: center;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div id="messageDiv" style="display: none;">
-        <h1>메세지 전송</h1>
-        <form id="webhookForm">
-            <label for="message">메시지 또는 이미지 붙여넣기:</label>
-            <textarea id="message" rows="4" placeholder="여기에 텍스트나 이미지를 붙여넣으세요."></textarea>
+    <div>
+        <h1>이미지 붙여넣기 및 전송</h1>
+        <form id="uploadForm">
+            <label for="message">메시지 (선택):</label>
+            <textarea id="message" rows="4" placeholder="추가 메시지를 입력하세요"></textarea>
+            <div id="pastedImageContainer" style="margin-bottom: 10px;"></div>
             <button type="submit">전송</button>
             <div id="statusMessage"></div>
         </form>
     </div>
     <script>
-        const correctUsername = 'sharer';
-        const correctPassword = 'sharer';
-        const username = prompt('아이디를 입력하세요:');
-        const password = prompt('비밀번호를 입력하세요:');
-        
-        if (username === correctUsername && password === correctPassword) {
-            document.getElementById('messageDiv').style.display = 'block';
-            document.getElementById('message').focus(); // 메시지 입력창에 포커스
-        } else {
-            alert('아이디 또는 비밀번호가 잘못되었습니다.');
-            window.location.href = 'about:blank';
-        }
-
-        const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
-
-        document.getElementById('webhookForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const message = document.getElementById('message').value.trim();
-            const formData = new FormData();
-            let fileAppended = false;
-
-            // 붙여넣기 이벤트에서 저장된 이미지를 추가
-            if (window.pastedFile) {
-                formData.append('file', window.pastedFile);
-                fileAppended = true;
-                delete window.pastedFile; // 파일 전송 후 초기화
-            }
-
-            // 텍스트 메시지가 있을 경우 추가
-            if (message) {
-                formData.append('content', message);
-            }
-
-            // 전송할 내용이 없는 경우
-            if (!message && !fileAppended) {
-                alert('전송할 메시지나 이미지를 입력하세요.');
-                return;
-            }
-
-            sendMessage(formData);
-        });
+        const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL'; // 웹훅 URL을 여기에 입력하세요.
+        let pastedFile = null;
 
         // 붙여넣기 이벤트 처리
         document.getElementById('message').addEventListener('paste', (event) => {
             const clipboardItems = event.clipboardData.items;
-
             for (const item of clipboardItems) {
                 if (item.type.startsWith('image/')) {
                     const file = item.getAsFile();
-                    window.pastedFile = file; // 전역 변수로 이미지 저장
-                    alert('이미지가 붙여넣기되었습니다. 전송 버튼을 눌러주세요.');
-                    break;
+                    if (file) {
+                        pastedFile = file;
+
+                        // 미리보기 표시
+                        const imgPreview = document.createElement('img');
+                        imgPreview.src = URL.createObjectURL(file);
+                        imgPreview.style.maxWidth = '100%';
+                        imgPreview.style.border = '1px solid #7289da';
+                        imgPreview.style.borderRadius = '5px';
+
+                        const container = document.getElementById('pastedImageContainer');
+                        container.innerHTML = ''; // 이전 이미지를 제거
+                        container.appendChild(imgPreview);
+
+                        alert('이미지가 붙여넣기되었습니다. 전송 버튼을 눌러주세요.');
+                        return;
+                    }
                 }
             }
+            alert('붙여넣은 데이터가 이미지가 아닙니다.');
         });
 
-        function sendMessage(formData) {
+        // 전송 버튼 이벤트 처리
+        document.getElementById('uploadForm').addEventListener('submit', (event) => {
+            event.preventDefault();
             const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = '전송 중...';
+            statusMessage.style.color = '#ffffff';
+
+            const message = document.getElementById('message').value;
+
+            if (!pastedFile) {
+                statusMessage.textContent = '이미지를 붙여넣고 전송해주세요.';
+                statusMessage.style.color = '#ff0000';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', pastedFile);
+            if (message) formData.append('content', message);
+
             fetch(webhookUrl, {
                 method: 'POST',
-                body: formData
+                body: formData,
             })
-            .then(response => {
+            .then((response) => {
                 if (response.ok) {
                     statusMessage.textContent = '전송되었습니다!';
                     statusMessage.style.color = '#00ff00';
-                    document.getElementById('message').value = '';
                 } else {
-                    statusMessage.textContent = `전송 실패: ${response.statusText}`;
+                    statusMessage.textContent = '전송 실패: ' + response.statusText;
                     statusMessage.style.color = '#ff0000';
                 }
             })
-            .catch(error => {
+            .catch((error) => {
                 statusMessage.textContent = '전송 중 오류 발생';
                 statusMessage.style.color = '#ff0000';
                 console.error('Error:', error);
             });
-        }
+        });
     </script>
 </body>
 </html>
