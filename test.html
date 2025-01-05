@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>메세지 전송</title>
+    <title>로그인</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,11 +15,6 @@
             height: 100vh;
             margin: 0;
         }
-        h1 {
-            color: #7289da;
-            margin-bottom: 20px;
-            text-align: center;
-        }
         form {
             background: #40444b;
             padding: 20px;
@@ -28,114 +23,68 @@
             width: 300px;
         }
         label {
-            margin-top: 10px;
             display: block;
+            margin-bottom: 5px;
         }
-        input[type="text"], textarea, input[type="file"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
+            margin-bottom: 10px;
             border-radius: 5px;
             border: 1px solid #7289da;
-            margin-bottom: 10px;
             background-color: #2f3136;
             color: #ffffff;
         }
         button {
+            width: 100%;
             background-color: #7289da;
             color: white;
             border: none;
             padding: 10px;
             border-radius: 5px;
             cursor: pointer;
-            width: 100%;
             transition: background-color 0.3s;
         }
         button:hover {
             background-color: #5b6eae;
         }
-        #statusMessage {
-            margin-top: 10px;
+        #errorMessage {
+            color: #ff0000;
             text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="messageDiv">
-        <h1>메세지 전송</h1>
-        <form id="webhookForm">
-            <label for="message">메시지 (선택):</label>
-            <textarea id="message" rows="4"></textarea>
-            <label for="file">파일 선택:</label>
-            <input type="file" id="file" accept="image/*" multiple>
-            <button type="submit">전송</button>
-            <button type="button" id="cancelButton">취소</button>
-            <div id="statusMessage"></div>
-        </form>
-    </div>
+    <form id="loginForm">
+        <h2>로그인</h2>
+        <label for="username">아이디</label>
+        <input type="text" id="username" placeholder="아이디를 입력하세요">
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" placeholder="비밀번호를 입력하세요">
+        <button type="submit">로그인</button>
+        <div id="errorMessage"></div>
+    </form>
+
     <script>
-        const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
+        const correctUsername = "sharer";
+        const correctPassword = "sharer";
 
-        document.getElementById('webhookForm').addEventListener('submit', function(event) {
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
             event.preventDefault();
-            sendMessage();
-        });
 
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            document.getElementById('file').value = '';
-            document.getElementById('message').value = '';
-            document.getElementById('statusMessage').textContent = '';
-        });
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const errorMessage = document.getElementById("errorMessage");
 
-        async function sendMessage() {
-            const message = document.getElementById('message').value;
-            const fileInput = document.getElementById('file');
-            const files = fileInput.files;
-            const maxFileSize = 8 * 1024 * 1024; // 8MB
-            const statusMessage = document.getElementById('statusMessage');
-
-            if (!message && files.length === 0) {
-                statusMessage.textContent = '메시지 또는 파일을 입력하세요.';
-                statusMessage.style.color = '#ff0000';
-                return;
+            if (username === correctUsername && password === correctPassword) {
+                alert("로그인 성공!");
+                window.location.href = "main.html"; // 메인 페이지로 이동
+            } else {
+                alert("아이디 또는 비밀번호가 잘못되었습니다.");
+                window.location.href = "about:blank"; // 빈 페이지로 이동
             }
-
-            // 상태 메시지 초기화
-            statusMessage.textContent = '전송 중...';
-            statusMessage.style.color = '#ffffff';
-
-            try {
-                // 메시지 전송
-                if (message) {
-                    const messageData = new FormData();
-                    messageData.append('content', message);
-                    await fetch(webhookUrl, { method: 'POST', body: messageData });
-                }
-
-                // 파일 전송 (개별 요청)
-                for (const file of files) {
-                    if (file.size > maxFileSize) {
-                        statusMessage.textContent = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
-                        statusMessage.style.color = '#ff0000';
-                        continue;
-                    }
-
-                    const fileData = new FormData();
-                    fileData.append('file', file);
-                    const response = await fetch(webhookUrl, { method: 'POST', body: fileData });
-
-                    if (!response.ok) {
-                        throw new Error(`파일 전송 실패: ${file.name}`);
-                    }
-                }
-
-                statusMessage.textContent = '모든 파일이 성공적으로 전송되었습니다!';
-                statusMessage.style.color = '#00ff00';
-            } catch (error) {
-                console.error(error);
-                statusMessage.textContent = '전송 중 오류 발생!';
-                statusMessage.style.color = '#ff0000';
-            }
-        }
+        });
     </script>
 </body>
 </html>
