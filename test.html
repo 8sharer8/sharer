@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ㄴ메세지 전송</title>
+    <title>메세지 전송</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -85,34 +85,44 @@
 
         const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
 
-        // 붙여넣기 이벤트 처리
-        document.getElementById('message').addEventListener('paste', async (event) => {
-            const clipboardItems = event.clipboardData.items;
+        document.getElementById('webhookForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const message = document.getElementById('message').value.trim();
             const formData = new FormData();
+            let fileAppended = false;
+
+            // 붙여넣기 이벤트에서 저장된 이미지를 추가
+            if (window.pastedFile) {
+                formData.append('file', window.pastedFile);
+                fileAppended = true;
+                delete window.pastedFile; // 파일 전송 후 초기화
+            }
+
+            // 텍스트 메시지가 있을 경우 추가
+            if (message) {
+                formData.append('content', message);
+            }
+
+            // 전송할 내용이 없는 경우
+            if (!message && !fileAppended) {
+                alert('전송할 메시지나 이미지를 입력하세요.');
+                return;
+            }
+
+            sendMessage(formData);
+        });
+
+        // 붙여넣기 이벤트 처리
+        document.getElementById('message').addEventListener('paste', (event) => {
+            const clipboardItems = event.clipboardData.items;
 
             for (const item of clipboardItems) {
                 if (item.type.startsWith('image/')) {
                     const file = item.getAsFile();
-                    formData.append('file', file);
-                } else if (item.type === 'text/plain') {
-                    const text = event.clipboardData.getData('text/plain');
-                    formData.append('content', text);
+                    window.pastedFile = file; // 전역 변수로 이미지 저장
+                    alert('이미지가 붙여넣기되었습니다. 전송 버튼을 눌러주세요.');
+                    break;
                 }
-            }
-
-            if (formData.has('file') || formData.has('content')) {
-                sendMessage(formData);
-            }
-        });
-
-        document.getElementById('webhookForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const message = document.getElementById('message').value;
-            const formData = new FormData();
-
-            if (message.trim()) {
-                formData.append('content', message);
-                sendMessage(formData);
             }
         });
 
