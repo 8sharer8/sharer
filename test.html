@@ -63,8 +63,8 @@
     <div id="messageDiv" style="display: none;">
         <h1>메세지 전송</h1>
         <form id="webhookForm">
-            <label for="message">메시지 (붙여넣기 후 전송):</label>
-            <textarea id="message" rows="4" placeholder="여기에 붙여넣기하세요."></textarea>
+            <label for="message">메시지 또는 이미지 붙여넣기:</label>
+            <textarea id="message" rows="4" placeholder="여기에 텍스트나 이미지를 붙여넣으세요."></textarea>
             <button type="submit">전송</button>
             <div id="statusMessage"></div>
         </form>
@@ -85,25 +85,42 @@
 
         const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
 
-        document.getElementById('webhookForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            sendMessage();
-        });
+        // 붙여넣기 이벤트 처리
+        document.getElementById('message').addEventListener('paste', async (event) => {
+            const clipboardItems = event.clipboardData.items;
+            const formData = new FormData();
 
-        function sendMessage() {
-            const message = document.getElementById('message').value;
-            const statusMessage = document.getElementById('statusMessage');
-
-            if (!message.trim()) {
-                statusMessage.textContent = '메시지를 입력하세요.';
-                statusMessage.style.color = '#ff0000';
-                return;
+            for (const item of clipboardItems) {
+                if (item.type.startsWith('image/')) {
+                    const file = item.getAsFile();
+                    formData.append('file', file);
+                } else if (item.type === 'text/plain') {
+                    const text = event.clipboardData.getData('text/plain');
+                    formData.append('content', text);
+                }
             }
 
+            if (formData.has('file') || formData.has('content')) {
+                sendMessage(formData);
+            }
+        });
+
+        document.getElementById('webhookForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const message = document.getElementById('message').value;
+            const formData = new FormData();
+
+            if (message.trim()) {
+                formData.append('content', message);
+                sendMessage(formData);
+            }
+        });
+
+        function sendMessage(formData) {
+            const statusMessage = document.getElementById('statusMessage');
             fetch(webhookUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: message })
+                body: formData
             })
             .then(response => {
                 if (response.ok) {
