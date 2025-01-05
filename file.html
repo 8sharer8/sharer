@@ -60,7 +60,7 @@
     </style>
 </head>
 <body>
-    <div id="messageDiv">
+    <div id="messageDiv" style="display: none;">
         <h1>메세지 전송</h1>
         <form id="webhookForm">
             <label for="message">메시지 (선택):</label>
@@ -73,6 +73,22 @@
         </form>
     </div>
     <script>
+        // 로그인 로직
+        const correctUsername = "sharer";
+        const correctPassword = "sharer";
+
+        const username = prompt("아이디를 입력하세요:");
+        const password = prompt("비밀번호를 입력하세요:");
+
+        if (username === correctUsername && password === correctPassword) {
+            alert("로그인 성공!");
+            document.getElementById("messageDiv").style.display = "block";
+        } else {
+            alert("아이디 또는 비밀번호가 잘못되었습니다.");
+            window.location.href = "about:blank";
+        }
+
+        // Webhook 메시지 전송 로직
         const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
 
         document.getElementById('webhookForm').addEventListener('submit', function(event) {
