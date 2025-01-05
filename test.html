@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ㄴ이미지 붙여넣기 및 전송</title>
+    <title>메세지 전송</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -27,7 +27,11 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             width: 300px;
         }
-        textarea {
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+        input[type="text"], textarea, input[type="file"] {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
@@ -52,91 +56,69 @@
         #statusMessage {
             margin-top: 10px;
             text-align: center;
-            font-size: 14px;
+            color: #ff0000;
         }
     </style>
 </head>
 <body>
-    <div>
-        <h1>이미지 붙여넣기 및 전송</h1>
-        <form id="uploadForm">
+    <div id="messageDiv">
+        <h1>메세지 전송</h1>
+        <form id="webhookForm">
             <label for="message">메시지 (선택):</label>
-            <textarea id="message" rows="4" placeholder="추가 메시지를 입력하세요"></textarea>
-            <div id="pastedImageContainer" style="margin-bottom: 10px;"></div>
+            <textarea id="message" rows="4"></textarea>
+            <label for="file">파일 선택:</label>
+            <input type="file" id="file" accept="image/*" multiple>
             <button type="submit">전송</button>
-            <div id="statusMessage"></div>
+            <button type="button" id="cancelButton">취소</button>
+            <div id="statusMessageWebhook"></div>
         </form>
     </div>
     <script>
-        const webhookUrl = 'YOUR_DISCORD_WEBHOOK_URL'; // 웹훅 URL을 여기에 입력하세요.
-        let pastedFile = null;
+        const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
 
-        // 붙여넣기 이벤트 처리
-        document.getElementById('message').addEventListener('paste', (event) => {
-            const clipboardItems = event.clipboardData.items;
-            for (const item of clipboardItems) {
-                if (item.type.startsWith('image/')) {
-                    const file = item.getAsFile();
-                    if (file) {
-                        pastedFile = file;
-
-                        // 미리보기 표시
-                        const imgPreview = document.createElement('img');
-                        imgPreview.src = URL.createObjectURL(file);
-                        imgPreview.style.maxWidth = '100%';
-                        imgPreview.style.border = '1px solid #7289da';
-                        imgPreview.style.borderRadius = '5px';
-
-                        const container = document.getElementById('pastedImageContainer');
-                        container.innerHTML = ''; // 이전 이미지를 제거
-                        container.appendChild(imgPreview);
-
-                        alert('이미지가 붙여넣기되었습니다. 전송 버튼을 눌러주세요.');
-                        return;
-                    }
-                }
-            }
-            alert('붙여넣은 데이터가 이미지가 아닙니다.');
+        document.getElementById('webhookForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            sendMessage();
         });
 
-        // 전송 버튼 이벤트 처리
-        document.getElementById('uploadForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = '전송 중...';
-            statusMessage.style.color = '#ffffff';
+        document.getElementById('cancelButton').addEventListener('click', function() {
+            document.getElementById('file').value = '';
+        });
 
+        function sendMessage() {
             const message = document.getElementById('message').value;
+            const fileInput = document.getElementById('file');
+            const formData = new FormData();
 
-            if (!pastedFile) {
-                statusMessage.textContent = '이미지를 붙여넣고 전송해주세요.';
-                statusMessage.style.color = '#ff0000';
-                return;
+            if (message) {
+                formData.append('content', message);
             }
 
-            const formData = new FormData();
-            formData.append('file', pastedFile);
-            if (message) formData.append('content', message);
+            // 모든 파일을 FormData에 추가
+            Array.from(fileInput.files).forEach((file, index) => {
+                formData.append(`file${index}`, file);
+            });
 
+            // Fetch API로 데이터 전송
             fetch(webhookUrl, {
                 method: 'POST',
                 body: formData,
             })
-            .then((response) => {
-                if (response.ok) {
-                    statusMessage.textContent = '전송되었습니다!';
-                    statusMessage.style.color = '#00ff00';
-                } else {
-                    statusMessage.textContent = '전송 실패: ' + response.statusText;
-                    statusMessage.style.color = '#ff0000';
-                }
-            })
-            .catch((error) => {
-                statusMessage.textContent = '전송 중 오류 발생';
-                statusMessage.style.color = '#ff0000';
-                console.error('Error:', error);
-            });
-        });
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('statusMessageWebhook').textContent = '전송되었습니다!';
+                        document.getElementById('statusMessageWebhook').style.color = '#00ff00';
+                    } else {
+                        document.getElementById('statusMessageWebhook').textContent = `전송 실패: ${response.status}`;
+                        document.getElementById('statusMessageWebhook').style.color = '#ff0000';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('statusMessageWebhook').textContent = '전송 중 오류 발생';
+                    document.getElementById('statusMessageWebhook').style.color = '#ff0000';
+                    console.error('Error:', error);
+                });
+        }
     </script>
 </body>
 </html>
