@@ -73,7 +73,6 @@
         </form>
     </div>
     <script>
-        // 로그인 로직
         const correctUsername = "sharer";
         const correctPassword = "sharer";
 
@@ -81,14 +80,12 @@
         const password = prompt("비밀번호를 입력하세요:");
 
         if (username === correctUsername && password === correctPassword) {
-            alert("로그인 성공!");
             document.getElementById("messageDiv").style.display = "block";
         } else {
             alert("아이디 또는 비밀번호가 잘못되었습니다.");
             window.location.href = "about:blank";
         }
 
-        // Webhook 메시지 전송 로직
         const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
 
         document.getElementById('webhookForm').addEventListener('submit', function(event) {
@@ -106,7 +103,7 @@
             const message = document.getElementById('message').value;
             const fileInput = document.getElementById('file');
             const files = fileInput.files;
-            const maxFileSize = 8 * 1024 * 1024; // 8MB
+            const maxFileSize = 8 * 1024 * 1024;
             const statusMessage = document.getElementById('statusMessage');
 
             if (!message && files.length === 0) {
@@ -115,19 +112,16 @@
                 return;
             }
 
-            // 상태 메시지 초기화
             statusMessage.textContent = '전송 중...';
             statusMessage.style.color = '#ffffff';
 
             try {
-                // 메시지 전송
                 if (message) {
                     const messageData = new FormData();
                     messageData.append('content', message);
                     await fetch(webhookUrl, { method: 'POST', body: messageData });
                 }
 
-                // 파일 전송 (개별 요청)
                 for (const file of files) {
                     if (file.size > maxFileSize) {
                         statusMessage.textContent = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
