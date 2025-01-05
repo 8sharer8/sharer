@@ -31,7 +31,7 @@
             margin-top: 10px;
             display: block;
         }
-        input[type="text"], input[type="password"], textarea {
+        input[type="text"], textarea, input[type="file"] {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
@@ -56,7 +56,6 @@
         #statusMessage {
             margin-top: 10px;
             text-align: center;
-            color: #ff0000;
         }
     </style>
 </head>
@@ -67,47 +66,24 @@
             <label for="message">메시지 (선택):</label>
             <textarea id="message" rows="4"></textarea>
             <label for="file">파일 선택:</label>
-            <input type="file" id="file" accept="*/*">
+            <input type="file" id="file" accept="image/*" multiple>
             <button type="submit">전송</button>
             <button type="button" id="cancelButton">취소</button>
-            <div id="statusMessageWebhook"></div>
+            <div id="statusMessage"></div>
         </form>
     </div>
     <script>
-        (function(_0x38b6a1, _0x10b5a2) {
-            const _0x4937d3 = function(_0x2e5b73) {
-                while (--_0x2e5b73) {
-                    _0x38b6a1['push'](_0x38b6a1['shift']());
-                }
-            };
-            _0x4937d3(++_0x10b5a2);
-        })([
-            'sharer', 'sharer', 'messageDiv', '아이디를 입력하세요:', 
-            '비밀번호를 입력하세요:', 'alert', '아이디 또는 비밀번호가 잘못되었습니다.', 
-            'about:blank', 'fetch', 'POST', 'content', 'value', 'then', 'catch', 
-            'Error', 'log'
-        ], 0x1c);
+        const correctUsername = "sharer";
+        const correctPassword = "sharer";
 
-        const _0x12a4 = function(_0x38b6a1, _0x10b5a2) {
-            _0x38b6a1 = _0x38b6a1 - 0x0;
-            return [
-                'sharer', 'sharer', 'messageDiv', '아이디를 입력하세요:', 
-                '비밀번호를 입력하세요:', 'alert', '아이디 또는 비밀번호가 잘못되었습니다.', 
-                'about:blank', 'fetch', 'POST', 'content', 'value', 'then', 'catch', 
-                'Error', 'log'
-            ][_0x38b6a1];
-        };
-
-        const correctUsername = _0x12a4(0x0);
-        const correctPassword = _0x12a4(0x1);
-        const username = prompt(_0x12a4(0x3));
-        const password = prompt(_0x12a4(0x4));
+        const username = prompt("아이디를 입력하세요:");
+        const password = prompt("비밀번호를 입력하세요:");
 
         if (username === correctUsername && password === correctPassword) {
-            document.getElementById(_0x12a4(0x2)).style.display = 'block';
+            document.getElementById("messageDiv").style.display = "block";
         } else {
-            alert(_0x12a4(0x5));
-            window.location.href = _0x12a4(0x6);
+            alert("아이디 또는 비밀번호가 잘못되었습니다.");
+            window.location.href = "about:blank";
         }
 
         const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
@@ -117,37 +93,58 @@
             sendMessage();
         });
 
-        document.getElementById('message').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                sendMessage();
-            }
-        });
-
         document.getElementById('cancelButton').addEventListener('click', function() {
             document.getElementById('file').value = '';
+            document.getElementById('message').value = '';
+            document.getElementById('statusMessage').textContent = '';
         });
 
-        function sendMessage() {
+        async function sendMessage() {
             const message = document.getElementById('message').value;
             const fileInput = document.getElementById('file');
-            const formData = new FormData();
+            const files = fileInput.files;
+            const maxFileSize = 8 * 1024 * 1024;
+            const statusMessage = document.getElementById('statusMessage');
 
-            if (message) formData.append(_0x12a4(0xa), message);
-            if (fileInput.files.length > 0) formData.append('file', fileInput.files[0]);
+            if (!message && files.length === 0) {
+                statusMessage.textContent = '메시지 또는 파일을 입력하세요.';
+                statusMessage.style.color = '#ff0000';
+                return;
+            }
 
-            fetch(webhookUrl, {
-                method: _0x12a4(0x9),
-                body: formData
-            })[_0x12a4(0xb)](response => {
-                if (response.ok) {
-                    console.log('Success');
-                } else {
-                    console.log('Failed');
+            statusMessage.textContent = '전송 중...';
+            statusMessage.style.color = '#ffffff';
+
+            try {
+                if (message) {
+                    const messageData = new FormData();
+                    messageData.append('content', message);
+                    await fetch(webhookUrl, { method: 'POST', body: messageData });
                 }
-            })[_0x12a4(0xc)](error => {
-                console.error(_0x12a4(0xe), error);
-            });
+
+                for (const file of files) {
+                    if (file.size > maxFileSize) {
+                        statusMessage.textContent = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
+                        statusMessage.style.color = '#ff0000';
+                        continue;
+                    }
+
+                    const fileData = new FormData();
+                    fileData.append('file', file);
+                    const response = await fetch(webhookUrl, { method: 'POST', body: fileData });
+
+                    if (!response.ok) {
+                        throw new Error(`파일 전송 실패: ${file.name}`);
+                    }
+                }
+
+                statusMessage.textContent = '모든 파일이 성공적으로 전송되었습니다!';
+                statusMessage.style.color = '#00ff00';
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent = '전송 중 오류 발생!';
+                statusMessage.style.color = '#ff0000';
+            }
         }
     </script>
 </body>
