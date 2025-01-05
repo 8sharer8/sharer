@@ -31,7 +31,7 @@
             margin-top: 10px;
             display: block;
         }
-        input[type="text"], input[type="password"], textarea {
+        textarea {
             width: 100%;
             padding: 10px;
             border-radius: 5px;
@@ -56,7 +56,6 @@
         #statusMessage {
             margin-top: 10px;
             text-align: center;
-            color: #ff0000;
         }
     </style>
 </head>
@@ -64,13 +63,10 @@
     <div id="messageDiv" style="display: none;">
         <h1>메세지 전송</h1>
         <form id="webhookForm">
-            <label for="message">메시지 (선택):</label>
-            <textarea id="message" rows="4">기본 메시지 내용입니다.</textarea>
-            <label for="file">파일 선택:</label>
-            <input type="file" id="file" accept="*/*">
+            <label for="message">메시지 (붙여넣기 후 전송):</label>
+            <textarea id="message" rows="4" placeholder="여기에 붙여넣기하세요."></textarea>
             <button type="submit">전송</button>
-            <button type="button" id="cancelButton">취소</button>
-            <div id="statusMessageWebhook"></div>
+            <div id="statusMessage"></div>
         </form>
     </div>
     <script>
@@ -81,6 +77,7 @@
         
         if (username === correctUsername && password === correctPassword) {
             document.getElementById('messageDiv').style.display = 'block';
+            document.getElementById('message').focus(); // 메시지 입력창에 포커스
         } else {
             alert('아이디 또는 비밀번호가 잘못되었습니다.');
             window.location.href = 'about:blank';
@@ -93,36 +90,34 @@
             sendMessage();
         });
 
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            document.getElementById('file').value = '';
-        });
-
         function sendMessage() {
-            const message = document.getElementById('message').value || '기본 메시지 내용입니다.';
-            const fileInput = document.getElementById('file');
-            const formData = new FormData();
+            const message = document.getElementById('message').value;
+            const statusMessage = document.getElementById('statusMessage');
 
-            if (message) formData.append('content', message);
-            if (fileInput.files.length > 0) formData.append('file', fileInput.files[0]);
+            if (!message.trim()) {
+                statusMessage.textContent = '메시지를 입력하세요.';
+                statusMessage.style.color = '#ff0000';
+                return;
+            }
 
             fetch(webhookUrl, {
                 method: 'POST',
-                body: formData
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: message })
             })
             .then(response => {
-                const statusMessageWebhook = document.getElementById('statusMessageWebhook');
                 if (response.ok) {
-                    statusMessageWebhook.textContent = '전송되었습니다!';
-                    statusMessageWebhook.style.color = '#00ff00';
+                    statusMessage.textContent = '전송되었습니다!';
+                    statusMessage.style.color = '#00ff00';
+                    document.getElementById('message').value = '';
                 } else {
-                    statusMessageWebhook.textContent = `전송 실패: ${response.statusText}`;
-                    statusMessageWebhook.style.color = '#ff0000';
+                    statusMessage.textContent = `전송 실패: ${response.statusText}`;
+                    statusMessage.style.color = '#ff0000';
                 }
             })
             .catch(error => {
-                const statusMessageWebhook = document.getElementById('statusMessageWebhook');
-                statusMessageWebhook.textContent = '전송 중 오류 발생';
-                statusMessageWebhook.style.color = '#ff0000';
+                statusMessage.textContent = '전송 중 오류 발생';
+                statusMessage.style.color = '#ff0000';
                 console.error('Error:', error);
             });
         }
