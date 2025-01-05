@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메세지 전송</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2c2f33;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            color: #7289da;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        form {
+            background: #40444b;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            width: 300px;
+        }
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+        input[type="text"], textarea, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #7289da;
+            margin-bottom: 10px;
+            background-color: #2f3136;
+            color: #ffffff;
+        }
+        button {
+            background-color: #7289da;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #5b6eae;
+        }
+        #statusMessage {
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="messageDiv" style="display: none;">
+        <h1>메세지 전송</h1>
+        <form id="webhookForm">
+            <label for="message">메시지 (선택):</label>
+            <textarea id="message" rows="4"></textarea>
+            <label for="file">파일 선택:</label>
+            <input type="file" id="file" accept="image/*" multiple>
+            <button type="submit">전송</button>
+            <button type="button" id="cancelButton">취소</button>
+            <div id="statusMessage"></div>
+        </form>
+    </div>
+    <script>
+        (function() {
+            const _0x3a54 = ["sharer", "아이디를 입력하세요:", "비밀번호를 입력하세요:", "아이디 또는 비밀번호가 잘못되었습니다.", "about:blank", "messageDiv", "display", "block", "webhookForm", "submit", "cancelButton", "click", "file", "value", "message", "statusMessage", "textContent", "메시지 또는 파일을 입력하세요.", "color", "#ff0000", "전송 중...", "#ffffff", "content", "POST", "file", "모든 파일이 성공적으로 전송되었습니다!", "#00ff00", "전송 중 오류 발생!"];
+            const correctUsername = _0x3a54[0];
+            const correctPassword = _0x3a54[0];
+            const username = prompt(_0x3a54[1]);
+            const password = prompt(_0x3a54[2]);
+            if (username === correctUsername && password === correctPassword) {
+                document.getElementById(_0x3a54[5]).style[_0x3a54[6]] = _0x3a54[7];
+            } else {
+                alert(_0x3a54[3]);
+                window.location.href = _0x3a54[4];
+            }
+            const webhookUrl = "https://discord.com/api/webhooks/1325317215767236700/5tpbl2EkKP9q07y_xSju_y_Wtd1Sj9A2jOjQ_bDplAsZ2k7aDflMlTeU03IhAwNr6GLT";
+            document.getElementById(_0x3a54[8]).addEventListener(_0x3a54[9], function(event) {
+                event.preventDefault();
+                sendMessage();
+            });
+            document.getElementById(_0x3a54[10]).addEventListener(_0x3a54[11], function() {
+                document.getElementById(_0x3a54[12])[_0x3a54[13]] = "";
+                document.getElementById(_0x3a54[14])[_0x3a54[13]] = "";
+                document.getElementById(_0x3a54[15])[_0x3a54[16]] = "";
+            });
+            async function sendMessage() {
+                const message = document.getElementById(_0x3a54[14])[_0x3a54[13]];
+                const fileInput = document.getElementById(_0x3a54[12]);
+                const files = fileInput.files;
+                const maxFileSize = 8 * 1024 * 1024;
+                const statusMessage = document.getElementById(_0x3a54[15]);
+                if (!message && files.length === 0) {
+                    statusMessage[_0x3a54[16]] = _0x3a54[17];
+                    statusMessage[_0x3a54[18]] = _0x3a54[19];
+                    return;
+                }
+                statusMessage[_0x3a54[16]] = _0x3a54[20];
+                statusMessage[_0x3a54[18]] = _0x3a54[21];
+                try {
+                    if (message) {
+                        const messageData = new FormData();
+                        messageData.append(_0x3a54[22], message);
+                        await fetch(webhookUrl, {
+                            method: _0x3a54[23],
+                            body: messageData
+                        });
+                    }
+                    for (const file of files) {
+                        if (file.size > maxFileSize) {
+                            statusMessage[_0x3a54[16]] = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
+                            statusMessage[_0x3a54[18]] = _0x3a54[19];
+                            continue;
+                        }
+                        const fileData = new FormData();
+                        fileData.append(_0x3a54[24], file);
+                        const response = await fetch(webhookUrl, {
+                            method: _0x3a54[23],
+                            body: fileData
+                        });
+                        if (!response.ok) {
+                            throw new Error(`파일 전송 실패: ${file.name}`);
+                        }
+                    }
+                    statusMessage[_0x3a54[16]] = _0x3a54[25];
+                    statusMessage[_0x3a54[18]] = _0x3a54[26];
+                } catch (error) {
+                    console.error(error);
+                    statusMessage[_0x3a54[16]] = _0x3a54[27];
+                    statusMessage[_0x3a54[18]] = _0x3a54[19];
+                }
+            }
+        })();
+    </script>
+</body>
+</html>
