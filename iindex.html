@@ -73,79 +73,75 @@
         </form>
     </div>
     <script>
-        const correctUsername = "sharer";
-        const correctPassword = "sharer";
-
-        const username = prompt("아이디를 입력하세요:");
-        const password = prompt("비밀번호를 입력하세요:");
-
-        if (username === correctUsername && password === correctPassword) {
-            document.getElementById("messageDiv").style.display = "block";
-        } else {
-            alert("아이디 또는 비밀번호가 잘못되었습니다.");
-            window.location.href = "about:blank";
-        }
-
-        const webhookUrl = 'https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp';
-
-        document.getElementById('webhookForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            sendMessage();
-        });
-
-        document.getElementById('cancelButton').addEventListener('click', function() {
-            document.getElementById('file').value = '';
-            document.getElementById('message').value = '';
-            document.getElementById('statusMessage').textContent = '';
-        });
-
-        async function sendMessage() {
-            const message = document.getElementById('message').value;
-            const fileInput = document.getElementById('file');
-            const files = fileInput.files;
-            const maxFileSize = 8 * 1024 * 1024;
-            const statusMessage = document.getElementById('statusMessage');
-
-            if (!message && files.length === 0) {
-                statusMessage.textContent = '메시지 또는 파일을 입력하세요.';
-                statusMessage.style.color = '#ff0000';
-                return;
+        (function() {
+            const _0x3a54 = ["sharer", "아이디를 입력하세요:", "비밀번호를 입력하세요:", "아이디 또는 비밀번호가 잘못되었습니다.", "about:blank", "messageDiv", "display", "block", "webhookForm", "submit", "cancelButton", "click", "file", "value", "message", "statusMessage", "textContent", "메시지 또는 파일을 입력하세요.", "color", "#ff0000", "전송 중...", "#ffffff", "content", "POST", "file", "모든 파일이 성공적으로 전송되었습니다!", "#00ff00", "전송 중 오류 발생!"];
+            const correctUsername = _0x3a54[0];
+            const correctPassword = _0x3a54[0];
+            const username = prompt(_0x3a54[1]);
+            const password = prompt(_0x3a54[2]);
+            if (username === correctUsername && password === correctPassword) {
+                document.getElementById(_0x3a54[5]).style[_0x3a54[6]] = _0x3a54[7];
+            } else {
+                alert(_0x3a54[3]);
+                window.location.href = _0x3a54[4];
             }
-
-            statusMessage.textContent = '전송 중...';
-            statusMessage.style.color = '#ffffff';
-
-            try {
-                if (message) {
-                    const messageData = new FormData();
-                    messageData.append('content', message);
-                    await fetch(webhookUrl, { method: 'POST', body: messageData });
+            const webhookUrl = "https://discord.com/api/webhooks/1325059447835594853/vn_IY9pZ2x_mUzUTlpInQW1KrgP31JREYomj8GFUmLS9QjbIQqufcdZD93lNBjPypOzp";
+            document.getElementById(_0x3a54[8]).addEventListener(_0x3a54[9], function(event) {
+                event.preventDefault();
+                sendMessage();
+            });
+            document.getElementById(_0x3a54[10]).addEventListener(_0x3a54[11], function() {
+                document.getElementById(_0x3a54[12])[_0x3a54[13]] = "";
+                document.getElementById(_0x3a54[14])[_0x3a54[13]] = "";
+                document.getElementById(_0x3a54[15])[_0x3a54[16]] = "";
+            });
+            async function sendMessage() {
+                const message = document.getElementById(_0x3a54[14])[_0x3a54[13]];
+                const fileInput = document.getElementById(_0x3a54[12]);
+                const files = fileInput.files;
+                const maxFileSize = 8 * 1024 * 1024;
+                const statusMessage = document.getElementById(_0x3a54[15]);
+                if (!message && files.length === 0) {
+                    statusMessage[_0x3a54[16]] = _0x3a54[17];
+                    statusMessage[_0x3a54[18]] = _0x3a54[19];
+                    return;
                 }
-
-                for (const file of files) {
-                    if (file.size > maxFileSize) {
-                        statusMessage.textContent = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
-                        statusMessage.style.color = '#ff0000';
-                        continue;
+                statusMessage[_0x3a54[16]] = _0x3a54[20];
+                statusMessage[_0x3a54[18]] = _0x3a54[21];
+                try {
+                    if (message) {
+                        const messageData = new FormData();
+                        messageData.append(_0x3a54[22], message);
+                        await fetch(webhookUrl, {
+                            method: _0x3a54[23],
+                            body: messageData
+                        });
                     }
-
-                    const fileData = new FormData();
-                    fileData.append('file', file);
-                    const response = await fetch(webhookUrl, { method: 'POST', body: fileData });
-
-                    if (!response.ok) {
-                        throw new Error(`파일 전송 실패: ${file.name}`);
+                    for (const file of files) {
+                        if (file.size > maxFileSize) {
+                            statusMessage[_0x3a54[16]] = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
+                            statusMessage[_0x3a54[18]] = _0x3a54[19];
+                            continue;
+                        }
+                        const fileData = new FormData();
+                        fileData.append(_0x3a54[24], file);
+                        const response = await fetch(webhookUrl, {
+                            method: _0x3a54[23],
+                            body: fileData
+                        });
+                        if (!response.ok) {
+                            throw new Error(`파일 전송 실패: ${file.name}`);
+                        }
                     }
+                    statusMessage[_0x3a54[16]] = _0x3a54[25];
+                    statusMessage[_0x3a54[18]] = _0x3a54[26];
+                } catch (error) {
+                    console.error(error);
+                    statusMessage[_0x3a54[16]] = _0x3a54[27];
+                    statusMessage[_0x3a54[18]] = _0x3a54[19];
                 }
-
-                statusMessage.textContent = '모든 파일이 성공적으로 전송되었습니다!';
-                statusMessage.style.color = '#00ff00';
-            } catch (error) {
-                console.error(error);
-                statusMessage.textContent = '전송 중 오류 발생!';
-                statusMessage.style.color = '#ff0000';
             }
-        }
+        })();
     </script>
 </body>
 </html>
