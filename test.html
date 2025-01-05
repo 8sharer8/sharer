@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ㄴ메세지 전송</title>
+    <title>메세지 전송</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,7 +56,6 @@
         #statusMessage {
             margin-top: 10px;
             text-align: center;
-            color: #ff0000;
         }
     </style>
 </head>
@@ -70,7 +69,7 @@
             <input type="file" id="file" accept="image/*" multiple>
             <button type="submit">전송</button>
             <button type="button" id="cancelButton">취소</button>
-            <div id="statusMessageWebhook"></div>
+            <div id="statusMessage"></div>
         </form>
     </div>
     <script>
@@ -84,58 +83,58 @@
         document.getElementById('cancelButton').addEventListener('click', function() {
             document.getElementById('file').value = '';
             document.getElementById('message').value = '';
-            document.getElementById('statusMessageWebhook').textContent = '';
+            document.getElementById('statusMessage').textContent = '';
         });
 
-        function sendMessage() {
+        async function sendMessage() {
             const message = document.getElementById('message').value;
             const fileInput = document.getElementById('file');
             const files = fileInput.files;
-            const formData = new FormData();
-
-            // 메시지 추가
-            if (message) {
-                formData.append('content', message);
-            }
-
-            // 파일 크기 제한 확인 및 추가
             const maxFileSize = 8 * 1024 * 1024; // 8MB
-            let validFiles = Array.from(files).filter(file => file.size <= maxFileSize);
+            const statusMessage = document.getElementById('statusMessage');
 
-            if (validFiles.length === 0) {
-                document.getElementById('statusMessageWebhook').textContent = '파일 크기가 8MB를 초과하여 전송할 수 없습니다.';
-                document.getElementById('statusMessageWebhook').style.color = '#ff0000';
+            if (!message && files.length === 0) {
+                statusMessage.textContent = '메시지 또는 파일을 입력하세요.';
+                statusMessage.style.color = '#ff0000';
                 return;
             }
 
-            validFiles.forEach((file, index) => {
-                formData.append(`file${index}`, file);
-            });
-
             // 상태 메시지 초기화
-            const statusMessage = document.getElementById('statusMessageWebhook');
             statusMessage.textContent = '전송 중...';
             statusMessage.style.color = '#ffffff';
 
-            // Fetch API로 데이터 전송
-            fetch(webhookUrl, {
-                method: 'POST',
-                body: formData,
-            })
-                .then(response => {
-                    if (response.ok) {
-                        statusMessage.textContent = '전송되었습니다!';
-                        statusMessage.style.color = '#00ff00';
-                    } else {
-                        statusMessage.textContent = `전송 실패: ${response.status}`;
+            try {
+                // 메시지 전송
+                if (message) {
+                    const messageData = new FormData();
+                    messageData.append('content', message);
+                    await fetch(webhookUrl, { method: 'POST', body: messageData });
+                }
+
+                // 파일 전송 (개별 요청)
+                for (const file of files) {
+                    if (file.size > maxFileSize) {
+                        statusMessage.textContent = `파일 크기가 8MB를 초과하여 건너뜀: ${file.name}`;
                         statusMessage.style.color = '#ff0000';
+                        continue;
                     }
-                })
-                .catch(error => {
-                    statusMessage.textContent = '전송 중 오류 발생';
-                    statusMessage.style.color = '#ff0000';
-                    console.error('Error:', error);
-                });
+
+                    const fileData = new FormData();
+                    fileData.append('file', file);
+                    const response = await fetch(webhookUrl, { method: 'POST', body: fileData });
+
+                    if (!response.ok) {
+                        throw new Error(`파일 전송 실패: ${file.name}`);
+                    }
+                }
+
+                statusMessage.textContent = '모든 파일이 성공적으로 전송되었습니다!';
+                statusMessage.style.color = '#00ff00';
+            } catch (error) {
+                console.error(error);
+                statusMessage.textContent = '전송 중 오류 발생!';
+                statusMessage.style.color = '#ff0000';
+            }
         }
     </script>
 </body>
